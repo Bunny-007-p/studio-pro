@@ -1,0 +1,2 @@
+cd your-repository
+git config user.name "Your New Name"
