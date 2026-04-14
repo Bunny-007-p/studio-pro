@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #000; }
+        canvas { border: 1px solid #fff; }
+        #scoreboard { color: white; font-size: 24px; position: absolute; top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">
+        Player: <span id="playerScore">0</span> - Computer: <span id="computerScore">0</span>
+    </div>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+
+        // Create the pong paddles and ball
+        const paddleWidth = 10;
+        const paddleHeight = 100;
+        const ballSize = 10;
+
+        const player = {
+            x: 0,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white',
+            score: 0
+        };
+
+        const computer = {
+            x: canvas.width - paddleWidth,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white',
+            score: 0
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: ballSize,
+            speed: 4,
+            dx: 4,
+            dy: 4,
+            color: 'white'
+        };
+
+        // Draw everything
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = player.color;
+            context.fillRect(player.x, player.y, player.width, player.height);
+            context.fillStyle = computer.color;
+            context.fillRect(computer.x, computer.y, computer.width, computer.height);
+            context.fillStyle = ball.color;
+            context.beginPath();
+            context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            context.fill();
+            context.closePath();
+        }
+
+        // Move the paddles
+        function movePaddle() {
+            document.addEventListener('keydown', function(event) {
+                switch(event.key) {
+                    case 'ArrowUp':
+                        if (player.y > 0) player.y -= 20;
+                        break;
+                    case 'ArrowDown':
+                        if (player.y < canvas.height - player.height) player.y += 20;
+                        break;
+                }
+            });
+        }
+
+        function moveComputer() {
+            if (ball.y < computer.y) {
+                computer.y -= 4; // AI moves up
+            } else if (ball.y > computer.y + computer.height) {
+                computer.y += 4; // AI moves down
+            }
+        }
+
+        // Update the score
+        function updateScore() {
+            if (ball.x < 0) {
+                computer.score++;
+                resetBall();
+            } else if (ball.x > canvas.width) {
+                player.score++;
+                resetBall();
+            }
+            document.getElementById('playerScore').innerText = player.score;
+            document.getElementById('computerScore').innerText = computer.score;
+        }
+
+        // Reset ball to center
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = -ball.dx;
+        }
+
+        // Update game frames
+        function update() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            // Ball collision with top and bottom
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+            // Ball collision with paddles
+            if (ball.x < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.x > computer.x - ball.radius && ball.y > computer.y && ball.y < computer.y + computer.height) {
+                ball.dx = -ball.dx;
+            }
+            draw();
+            moveComputer();
+            updateScore();
+            requestAnimationFrame(update);
+        }
+
+        function startGame() {
+            movePaddle();
+            update();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
